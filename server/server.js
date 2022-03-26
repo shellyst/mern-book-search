@@ -11,18 +11,20 @@ const db = require("./config/connection");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Apollo server.
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: authMiddleware,
-});
+const startServer = async () => {
+  // Apollo server.
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: authMiddleware,
+  });
 
-// Start the Apollo server.
-// await server.start();
+  // Start the Apollo server.
+  await server.start();
 
-// Integrate Apollo server with the Express application as middleware.
-server.applyMiddleware({ app });
+  // Integrate Apollo server with the Express application as middleware.
+  server.applyMiddleware({ app });
+};
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -32,7 +34,10 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/build")));
 }
 
-app.use(routes);
+// Get all.
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build/index.html"));
+});
 
 db.once("open", () => {
   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
